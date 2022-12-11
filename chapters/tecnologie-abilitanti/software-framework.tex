@@ -1,0 +1,152 @@
+Per realizzare la web application sono stati utilizzati diversi linguaggi di programmazione, framework e software. Per comodità si distinguono quelli utilizzati lato client e lato server. 
+
+\subsection{Lato client}
+
+Per l'implementazione e la progettazione dell'interfaccia grafica sono stati adoperati:
+
+\begin{itemize}
+    
+\item
+\textbf{JavaScript} \cite{JS}: linguaggio di programmazione di alto livello. Permette la tipizzazione dinamica ed è multi-paradigma: è orientato agli eventi, funzionale e supporta la programmazione di tipo imperativo. È utilizzato principalmente nella programmazione Web lato client.
+    
+\item
+\textbf{jQuery} \cite{jQuery}: libreria JavaScript piccola, veloce e ricca di funzionalità. Rende la manipolazione HMTL, la gestione di eventi, le animazioni e Ajax molto più semplici con una API semplice da utilizzare che funziona attraverso un grande varietà di browser.
+    
+\item
+\textbf{Google Maps} \cite{GoogleMaps}: API di JavaScript fornita da Google. Permette di personalizzare mappe mostrate su pagine web e dispositivi mobili. Maps per Javascript mette a disposizione quattro tipi base di mappa che possono essere modificati utilizzando livelli e stili, controlli ed eventi, e vari servizi e librerie.
+    
+\item
+\textbf{HTML}: letteralmente \emph{HyperText Markup Language}, è un linguaggio di markup gerarchico strutturato ad albero. Permette di formattare e impaginare pagine Web.
+    
+\item
+\textbf{CSS}: \emph{Cascading Style Sheets} testualmente, descrive come gli elementi HTML devono essere visualizzati e permette di formattare lo stile delle pagine.
+
+\item
+\textbf{Bootstrap} \cite{Bootstrap}: kit di strumenti per il front-end. Consente di costruire e personalizzare con Sass e utilizzare sistemi a griglia e componenti precostituiti.
+In particolar modo la web application si serve del \emph{Grid System} di Bootstrap per adattarsi dinamicamente al dispositivo.
+
+\end{itemize}
+
+\subsubsection{DataTables} \label{datatables}
+
+Data la complessità di questo plug-in è necessario dedicare una spiegazione più approfondita al loro impiego specifico in questo progetto, per evidenziare le funzionalità che sono state utilizzate.
+
+\textbf{DataTables} \cite{DataTables} è un plug-in per la libreria jQuery di JavaScript. È uno strumento molto flessibile, costruito sulle fondamenta del miglioramento progressivo, che aggiunge delle funzionalità avanzate ad ogni tabella HTML.
+Nel progetto viene ampiamente sfruttata la funzionalità server-side processing, per la gestione di grandi quantità di dati lato server.
+
+Inizializzando una DataTable si definiscono tutta una serie di parametri e valori, in questo caso i parametri più utilizzati o di maggior importanza sono stati:
+\begin{itemize}
+    \item \texttt{oLanguage}: dà la possibilità di rinominare come si preferisce le \emph{label} di una DataTable;
+    \item \texttt{columnDefs}: permette di definire specifiche sulle colonne della tabella, ad esempio formattando il testo in esse presente, aggiungere elementi HTML o nascondere le colonne in questione;
+    \item \texttt{fnServerParams}: si inseriscono ulteriori parametri da inviare al server quando richiede i dati; il progetto ne ha usufruito per specificare al server di quale giorno mandare i dati;
+    \item \texttt{rowGroup}: raggruppa i dati come specificato; nell'app è stato impiegato per raggruppare i dati per giorni;
+    \item \texttt{drawCallback}: specifica una funzione da chiamare ogni volta che la tabella viene aggiornata.
+\end{itemize}
+
+\begin{lstlisting}[style=JavaScript,caption={Parte dell'implementazione della DataTable della sezione \ref{ft-conf-automatica}},captionpos=b,label={lst:esempio-datatable}]
+table = $('#FreetureFinalList').DataTable({
+        "oLanguage": {
+            "sZeroRecords": "Nessun risultato",
+            "sSearch": "Cerca:",
+            "oPaginate": {
+                "sPrevious": "Indietro",
+                "sNext": "Avanti"
+            },
+            "sInfo": "Mostra pagina _PAGE_ di _PAGES_",
+            "sInfoFiltered": "",
+            "sInfoEmpty": "Mostra pagina 0 di 0 elementi",
+            "sEmptyTable": "Nessun risultato",
+            "sLengthMenu": "Mostra _MENU_ elementi"
+        },
+        "columnDefs": [
+            {
+                "targets": [-1, -2, -3],
+                "visible": false
+            }],
+        responsive: true,
+        "fnServerParams": function (aoData) {
+            // Show page with passed index
+            aoData.push({"name": "searchPageById", "value": 
+                indexToShow});
+        },
+        [...]
+        "iDisplayLength": 10,
+        "iDisplayStart": 0,
+        "pageLength": 10,
+        bProcessing: true,
+        bServerSide: true,
+        bStateSave: true,
+        sAjaxSource: '/lib/ft/V2/freeturefinal/datatable/list',
+        "paging": true,
+        "ordering": false,
+        "info": true,
+        "searching": false
+    });
+\end{lstlisting}
+
+Una funzionalità supportata da DataTables è il \emph{server-side processing} con paginazione lato client: in questo modo vengono richiesti solo i dati mostrati nella pagina corrente allo specifico endpoint (\texttt{sAjaxSource}) e non si deve appesantire il client con lo scaricamento di una consistente mole di dati. Questa caratteristica è risultata ad esempio molto utile nelle sezioni \ref{sezione-capture-stack} e \ref{sezione-detection}, dove i dati da processare sono numerosi e consistenti.
+
+I dati ricevuti dal server (strutturati in un oggetto specifico che il client può interpretare) vengono poi mostrati secondo le indicazioni nella tabella.
+
+\begin{lstlisting}[style=PHP,caption={Esempio di oggetto inviato al client per estrarre i dati da inserire nella DataTable. I dati veri e propri sono in \texttt{aaData}.},captionpos=b]
+[...]
+$output = array(
+        "sEcho" => intval($_GET['sEcho']),
+        "pageToShow" => $pageNumber,
+        "iTotalRecords" => $iTotal,
+        "iTotalDisplayRecords" => $iTotal,
+        "aaData" => $reply
+    );
+return $output;
+\end{lstlisting}
+
+In alcune sezioni si è avuto il bisogno di inserire in alcune colonne non solo un dato testuale, ma un vero e proprio elemento HTML, sia che fosse un testo formattato o addirittura un pulsante. In questo caso si è usufruito del parametro \texttt{columnDefs} e la funzione \texttt{render}. Di seguito si trova il codice implementato per realizzare un pulsante di download:
+
+\begin{lstlisting}[style=JavaScript,caption={Realizzazione del pulsante di download nella DataTable della sezione \ref{sezione-capture-stack}.},captionpos=b]
+[...]
+{
+    "targets": [-1],
+    render: function (data, type, row, meta) {
+        return "<center>" + 
+               "<a href='/lib/capture/V2/capture/download/" + 
+               data + "'>" + 
+               "<button class='btn btn-success'> +
+               "<i class='fa fa-download'>" +
+               "</i></button>" +
+               "</a></center>";
+    }
+}
+[...]
+\end{lstlisting}
+
+\subsection{Lato server}
+
+Per realizzare il lato server della web application sono stati utilizzati i seguenti linguaggi e framework:
+
+\begin{itemize}
+
+    \item \textbf{PHP} \cite{PHP}: linguaggio di scripting \emph{general-purpose} adatto soprattutto allo sviluppo web. 
+    
+    \item \textbf{Symfony} \cite{Symfony}: insieme di componenti PHP riutilizzabili e framework PHP per progetti web. Nella sezione \ref{framework-N3} si illustra nel dettaglio quali componenti si sono utilizzati.
+    
+    \item \textbf{Silex} \cite{Silex}: micro-framework PHP per sviluppare siti web basati su componenti Symfony.
+    
+\end{itemize}
+
+\noindent Relativamente all'elaborazione dei dati sono stati impiegati i software elencati di seguito, che permettono l'interazione da linea di comando: 
+
+\begin{itemize}
+
+    \item \textbf{fitspng} \cite{fitspng}: convertitore di immagini dal formato astronomico FITS in formato PNG. Risulta essere fondamentale per la visualizzazione da parte dell'utente delle immagini rilevate dalla telecamera in un formato che il browser può renderizzare.
+    
+    \item \textbf{ImageMagick} \cite{ImageMagick}: permette di creare, modificare, comporre o convertire immagini digitali. È stato impiegato per applicare un watermark alle immagini visualizzate dall'utente.
+    
+    \item \textbf{FFmpeg} \cite{FFmpeg}: soluzione \emph{cross-platform} completa per registrare, convertire e eseguire lo streaming di audio e video. Nel dettaglio, per l'implementazione della web application è stata utilizzata per comporre un video da un insieme di fotogrammi e per applicare un watermark al video generato.
+    
+    \item \textbf{libzip} \cite{libzip}: libreria in C per leggere, creare e modificare archivi zip. Il suo utilizzo ha avuto luogo per fornire all'utente un archivio dell'insieme di file che compongono una detection (cfr. sezione \ref{dati-raccolti}).
+    
+    \item \textbf{sysstat} \cite{sysstat}: pacchetto software che contiene diverse funzionalità, comuni a molti sistemi Unix, per monitorare le performance del sistema e l'attività di utilizzo. È risultato fondamentale per ricavare l'utilizzo della CPU (cfr. sezione \ref{stato-risorse-hw}).
+
+\end{itemize}
+
+Per utilizzare i software citati, viene adoperato il metodo PHP \texttt{shell\_exec()} nel codice eseguito sul server, che consente di eseguire il comando tramite shell e restituire l'output completo come stringa.

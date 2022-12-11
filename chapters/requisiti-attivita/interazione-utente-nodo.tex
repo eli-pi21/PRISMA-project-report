@@ -1,0 +1,20 @@
+La rete si compone di diversi nodi, chiamati \textbf{stazioni}, distribuiti in tutta Italia, ciascuno dei quali è associato ad una \textbf{telecamera} che rileva gli eventi atmosferici.
+
+Si illustra di seguito come prende luogo l'interazione tra l'utente e il nodo, con lo scopo di contestualizzare il lavoro svolto.
+
+\subsection{Struttura e accesso al nodo}
+Sui nodi sono in esecuzione il software FreeTure (cfr. sezione \ref{freeture}) e Prometheus (cfr. sezione \ref{prometheus}) con relative configurazioni; inoltre le funzioni del nodo sono organizzate e gestite tramite diversi container (cfr. sezione \ref{docker}).
+L'utente può accedere al nodo tramite un'apposita \textbf{VPN} (cfr. sezione \ref{rete-VPN}) in SSH.
+
+\subsection{Dati raccolti} \label{dati-raccolti}
+La telecamera del nodo riprende i fenomeni atmosferici e grazie a FreeTure produce tre tipi di dati, memorizzati nel file system del nodo e consultabili dall'utente connettendosi in SSH:
+\begin{enumerate}
+    \item \textbf{Capture} (o \textbf{calibrazioni}): immagini di “calibrazione”, sono scattate ogni 10 minuti. Vengono utilizzate per mappare la porzione di cielo corrispondente e calibrare gli strumenti necessari.
+    \item \textbf{Stack}: immagini che forniscono una sorta di “cronologia”, vengono scattate ogni minuto.
+    \item \textbf{Detection}: vengono generate al verificarsi di un evento atmosferico. A differenza delle \emph{capture} e degli \emph{stack} non sono costituite da un'unica immagine ma da un insieme di file, tra cui i frame che individuano l'evento.
+\end{enumerate}
+Tutte le immagini prodotte sono nel formato FITS, formato standard della NASA usato in astronomia \cite{FITS}. 
+
+Il progetto prima dell'inizio del tirocinio constava già di un'ampia infrastruttura tra cui si annovera una serie di procedure sul server di elaborazione centrale per la generazione di eventi e un sistema di automazione embrionale per gli script sul server.
+
+Gli eventi singoli (\emph{detection}) provenienti dai nodi vengono infatti sincronizzati giornalmente sul server di elaborazione da una procedura dedicata. Devono essere elaborati dal nodo di elaborazione centrale per poter generare gli eventi multipli, che vengono generalmente definiti come eventi ripresi da almeno tre nodi della rete. Solo a questo punto un evento multiplo può denotare un fenomeno atmosferico importante, come l'effettivo passaggio di una meteora.
