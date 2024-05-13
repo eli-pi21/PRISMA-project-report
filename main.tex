@@ -1,0 +1,69 @@
+\documentclass[12pt, twoside]{report}
+\raggedbottom
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage[italian]{babel}
+\usepackage{csquotes}
+\usepackage{lipsum}
+\usepackage{fancyhdr}
+\usepackage{pdfpages}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage{framed}
+\usepackage{geometry}
+\usepackage{listings,xcolor}
+\usepackage{inconsolata}
+\usepackage{setspace}
+\usepackage[T1]{fontenc}
+\usepackage[backend=biber, sorting=none]{biblatex}
+\usepackage{hyperref}
+%\usepackage[nottoc,numbib]{tocbibind}
+
+\input{impaginazione/stile}
+
+\begin{document}
+
+%\begin{titlepage}
+%  \includepdf{frontespizio}
+%\end{titlepage}
+
+\newgeometry{margin=1in}
+\input{impaginazione/frontespizio}
+\restoregeometry
+\newgeometry{width=150mm,top=25mm,bottom=25mm,headheight=15pt}
+
+\newpage
+\thispagestyle{empty}
+\begin{flushright}
+\null\vspace{\stretch{1}}
+\textit{A tutti quelli che hanno creduto in me anche quando io non l'ho fatto.}
+\vspace{\stretch{2}}\null
+\end{flushright}
+
+\tableofcontents
+
+\chapter{Introduzione - Progetto PRISMA}
+\input{chapters/introduzione}
+
+\chapter{Requisiti dell'Attività}
+\input{chapters/requisiti-attivita}
+
+\chapter{Tecnologie Abilitanti}
+\input{chapters/tecnologie-abilitanti}
+
+\chapter{Workflow del Sistema}
+\input{chapters/dettagli-workflow}
+
+\chapter{Conclusioni}
+\input{chapters/conclusioni}
+
+\newpage
+\addcontentsline{toc}{chapter}{Sitografia}
+\printbibliography[title={Sitografia}]
+
+\end{document}
+
+
